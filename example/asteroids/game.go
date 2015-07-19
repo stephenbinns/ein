@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+
 	"github.com/stephenbinns/ein/ein"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -16,7 +18,8 @@ func (p *Bullet) Update() {
 
 type Player struct {
 	*ein.Texture
-	score, speed int32
+	score int32
+	speed float64
 }
 
 func NewPlayer(e *ein.Engine) *Player {
@@ -35,11 +38,32 @@ func (p *Player) TurnRight() {
 }
 
 func (p *Player) Booster() {
-
+	p.speed++
 }
 
 func (p *Player) Update() {
+	p.speed *= 0.999
 
+	moveAngle := p.Angle * math.Pi / 180
+
+	xspeed := math.Sin(moveAngle) * (p.speed)
+	yspeed := math.Cos(moveAngle) * (p.speed * -1) // inverse because of 0 origin
+
+	p.Dest.X += int32(xspeed)
+	p.Dest.Y += int32(yspeed)
+
+	if p.Dest.X > 800 {
+		p.Dest.X = 0
+	}
+	if p.Dest.X < 0 {
+		p.Dest.X = 800
+	}
+	if p.Dest.Y > 600 {
+		p.Dest.Y = 0
+	}
+	if p.Dest.Y < 0 {
+		p.Dest.Y = 600
+	}
 }
 
 func (p *Player) Shoot(e *ein.Engine) {
@@ -97,6 +121,8 @@ func (g *Game) Update() {
 			g.Engine.Running = false
 		}
 	}
+
+	g.Player.Update()
 }
 
 func (g *Game) Draw() {
